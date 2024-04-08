@@ -1,5 +1,3 @@
-![image](https://github.com/AllyArc-org/chatbot/assets/80398726/589dc76d-7b77-47df-8a9e-cd907cec9aee)# Chatbot Project
-
 ## Introduction  🌟
 
 AllyArc Chatbot is a sophisticated tool designed to automate educational interactions, offering seamless messaging experiences via WhatsApp. Developed with Twilio Studio's flows and serverless functions, it supports educators by providing breakdown assistance, generating educational content, and facilitating a dynamic, responsive chat experience for Special Educational Needs (SEN) education. It uniquely incorporates a fine-tuned model to specifically handle breakdown requests, enhancing its capability to provide detailed and understandable explanations.
@@ -32,7 +30,7 @@ The chatbot uses several APIs to evaluate the student's response:
 - Twinword-Text-Similarity API to calculate text similarity and assign marks based on student answer and model answer.
 
 
-## Flows 🔄
+## Flows Overview 🔄
 
 The chatbot incorporates four distinct flows to manage various types of user interactions. Each flow is represented by a Twilio Studio JSON flow and is linked to specific serverless functions that facilitate the chatbot's operations.
 
@@ -53,6 +51,7 @@ This flow focuses on assigning tasks or questions to students, tracking their re
 - **Assignment Distribution and Collection:** Sends the assignment question and waits for the student's response.
 - **Grading:** Calculates the student's score based on the model answer and the response provided.
 <img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-breakdown.png?raw=true" width="600" height="400">
+
 ### Flow 3: AllyArc Breakdown Assistance
 
 Designed to offer step-by-step breakdown assistance for questions or tasks assigned to students. It helps in guiding the student through the solution process, improving their understanding and problem-solving skills.
@@ -61,6 +60,7 @@ Designed to offer step-by-step breakdown assistance for questions or tasks assig
 - **Breakdown Process:** Provides a detailed breakdown of the solution steps, asking for student's input or confirmation at each step.
 - **Feedback Collection:** Gathers student feedback on the assistance provided for continuous improvement of the breakdown process.
 <img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-visualize.png?raw=true" width="600" height="400">
+
 ### Flow 4: AllyArc Visualization
 
 Aids in visual learning by generating and presenting visual content based on the student's requests or the curriculum's needs. This could include diagrams, charts, or other educational visuals.
@@ -69,7 +69,8 @@ Aids in visual learning by generating and presenting visual content based on the
 - **Visual Content Generation:** Generates the requested visual content using serverless functions and external APIs as needed.
 - **Presentation:** Presents the generated visual content to the student, offering further explanations or answering questions about the visualized information.
 <img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-visualize.png?raw=true" width="600" height="400">
-# Serverless Functions Overview 🔧
+
+## Serverless Functions Overview 🔧
 
 The chatbot utilizes a variety of serverless functions to handle complex logic, integrate with external APIs, manage database interactions, and perform natural language processing. Below is a detailed overview of each serverless function and its purpose within the chatbot ecosystem.
 
