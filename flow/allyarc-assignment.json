@@ -1,0 +1,816 @@
+
+{
+    "description": "A New Flow",
+    "states": [
+      {
+        "name": "Trigger",
+        "type": "trigger",
+        "transitions": [
+          {
+            "event": "incomingMessage"
+          },
+          {
+            "event": "incomingCall"
+          },
+          {
+            "event": "incomingConversationMessage"
+          },
+          {
+            "event": "incomingRequest"
+          },
+          {
+            "next": "start_timestamp_function",
+            "event": "incomingParent"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2050,
+            "y": -110
+          }
+        }
+      },
+      {
+        "name": "set_variables_default",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "save_message_db_question_0",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{trigger.parent.parameters.sender_contact}}",
+              "key": "sender_contact"
+            },
+            {
+              "value": "{{trigger.parent.parameters.sender_grade}}",
+              "key": "sender_grade"
+            },
+            {
+              "value": "{{trigger.parent.parameters.student_name}}",
+              "key": "student_name"
+            },
+            {
+              "value": "{{trigger.parent.parameters.modelAnswer}}",
+              "key": "modelAnswer"
+            },
+            {
+              "value": "{{trigger.parent.parameters.id}}",
+              "key": "id"
+            },
+            {
+              "value": "{{trigger.parent.parameters.topic}}",
+              "key": "topic"
+            },
+            {
+              "value": "{{trigger.parent.parameters.question}}",
+              "key": "question"
+            },
+            {
+              "value": "{{trigger.parent.parameters.description}}",
+              "key": "description"
+            },
+            {
+              "value": "{{trigger.parent.parameters.score}}",
+              "key": "score"
+            }
+          ],
+          "offset": {
+            "x": -2370,
+            "y": 80
+          }
+        }
+      },
+      {
+        "name": "send_and_reply_question_0",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "save_message_db_set_answer",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "save_message_db_description_send_and_reply",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -760,
+            "y": 300
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "{{flow.variables.question}}",
+          "timeout": "30"
+        }
+      },
+      {
+        "name": "student_score_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "creativity_score_function",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -2510,
+            "y": 330
+          },
+          "function_sid": "ZHd9e53433900f1a0920eec23507081d71",
+          "parameters": [
+            {
+              "value": "{{flow.variables.answer}}",
+              "key": "answer"
+            },
+            {
+              "value": "{{flow.variables.sender_grade}}",
+              "key": "grade"
+            },
+            {
+              "value": "{{flow.variables.sender_contact}}",
+              "key": "contact"
+            },
+            {
+              "value": "{{flow.variables.description}}",
+              "key": "description"
+            },
+            {
+              "value": "{{flow.variables.modelAnswer}}",
+              "key": "model_answer"
+            },
+            {
+              "value": "{{flow.variables.score}}",
+              "key": "score"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/set_score"
+        }
+      },
+      {
+        "name": "set_answer",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "end_timestamp_function",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.send_and_reply_question_0.inbound.Body}}",
+              "key": "answer"
+            }
+          ],
+          "offset": {
+            "x": -1530,
+            "y": 350
+          }
+        }
+      },
+      {
+        "name": "send_summary",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "save_message_db_send_summary",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2080,
+            "y": 610
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "📝  *SUMMARY*\n\n ❓  *Question* : {{flow.variables.question}} \n\n 📝  *Description* : {{flow.variables.description}}\n\n 🎯  *Model Answer* : {{flow.variables.modelAnswer}}  \n\n 💯  *Total Score* : {{flow.variables.score}} \n \n 📝  *Your  Answer* : {{flow.variables.answer}} \n\n 🏆  *Your  Score* : {{widgets.student_score_function.parsed.score}}"
+        }
+      },
+      {
+        "name": "description_split",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "send_and_reply_question_0",
+            "event": "noMatch"
+          },
+          {
+            "next": "save_message_db_description_send_message",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value matches_any_of yes, sure, please, yep, yess, I do, yes please",
+                "arguments": [
+                  "{{widgets.description_send_and_reply.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "yes, sure, please, yep, yess, I do, yes please"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.description_send_and_reply.inbound.Body}}",
+          "offset": {
+            "x": -960,
+            "y": 70
+          }
+        }
+      },
+      {
+        "name": "description_send_message",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "save_message_db_return_to_question_send_message",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1010,
+            "y": 570
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "{{flow.variables.description}}"
+        }
+      },
+      {
+        "name": "return_to_question_send_message",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "send_and_reply_question_0",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1370,
+            "y": 600
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "🙏 I hope that helps!\n🔙 Let's return back to the assigned question."
+        }
+      },
+      {
+        "name": "description_send_and_reply",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "save_message_db_description",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1670,
+            "y": 70
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "👋 Do you want assistance in answering your assigned question? 💬",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "start_timestamp_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "set_variables_default",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -2010,
+            "y": 60
+          },
+          "function_sid": "ZHb96fde9482a7e4a3c5354ee394afa058",
+          "url": "https://allyarc-9130.twil.io/timestamp"
+        }
+      },
+      {
+        "name": "end_timestamp_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "time_management_function",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1870,
+            "y": 350
+          },
+          "function_sid": "ZHb96fde9482a7e4a3c5354ee394afa058",
+          "url": "https://allyarc-9130.twil.io/timestamp"
+        }
+      },
+      {
+        "name": "time_management_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "student_score_function",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -2190,
+            "y": 340
+          },
+          "function_sid": "ZH75207628aa3bbf02dc1b56c532410587",
+          "parameters": [
+            {
+              "value": "{{widgets.end_timestamp_function.parsed.timestamp  | to_json  }}",
+              "key": "end_timestamp"
+            },
+            {
+              "value": "{{widgets.start_timestamp_function.parsed.timestamp  | to_json  }}",
+              "key": "start_timestamp"
+            },
+            {
+              "value": "{{flow.variables.score}}",
+              "key": "score"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/time_management"
+        }
+      },
+      {
+        "name": "creativity_score_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "send_summary",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -2430,
+            "y": 620
+          },
+          "function_sid": "ZH6d555ddbb6fb10c3b73186bcd283b80b",
+          "parameters": [
+            {
+              "value": "{{flow.variables.answer}}",
+              "key": "answer"
+            },
+            {
+              "value": "{{flow.variables.sender_grade}}",
+              "key": "grade"
+            },
+            {
+              "value": "{{flow.variables.sender_contact}}",
+              "key": "contact"
+            },
+            {
+              "value": "{{flow.variables.description}}",
+              "key": "description"
+            },
+            {
+              "value": "{{flow.variables.modelAnswer}}",
+              "key": "model_answer"
+            },
+            {
+              "value": "{{flow.variables.score}}",
+              "key": "score"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/creativity"
+        }
+      },
+      {
+        "name": "save_db_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1690,
+            "y": 610
+          },
+          "function_sid": "ZH36bf5c186db5f885779357d88743e378",
+          "parameters": [
+            {
+              "value": "{{flow.variables.answer}}",
+              "key": "student_answer"
+            },
+            {
+              "value": "{{flow.variables.sender_grade}}",
+              "key": "grade"
+            },
+            {
+              "value": "{{flow.variables.sender_contact}}",
+              "key": "contact"
+            },
+            {
+              "value": "{{flow.variables.description}}",
+              "key": "description"
+            },
+            {
+              "value": "{{flow.variables.modelAnswer}}",
+              "key": "model_answer"
+            },
+            {
+              "value": "{{flow.variables.score}}",
+              "key": "score"
+            },
+            {
+              "value": "{{widgets.time_management_function.parsed.time_score | to_json}}",
+              "key": "time_score"
+            },
+            {
+              "value": "{{widgets.creativity_score_function.parsed.creativity | to_json}}",
+              "key": "creativity_score"
+            },
+            {
+              "value": "{{flow.variables.topic}}",
+              "key": "topic"
+            },
+            {
+              "value": "{{flow.variables.id}}",
+              "key": "id"
+            },
+            {
+              "value": "{{flow.variables.question}}",
+              "key": "question"
+            },
+            {
+              "value": "{{widgets.student_score_function.parsed.score}}",
+              "key": "student_score"
+            },
+            {
+              "value": "{{flow.variables.student_name}}",
+              "key": "student_name"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_answer_db"
+        }
+      },
+      {
+        "name": "save_message_db_description_send_and_reply",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "description_send_and_reply",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -990,
+            "y": -150
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "{{flow.variables.question}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_question_0",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "send_and_reply_question_0",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -320,
+            "y": 300
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "{{flow.variables.question}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_set_answer",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "set_answer",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1200,
+            "y": 300
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "receiver"
+            },
+            {
+              "value": "student",
+              "key": "sender"
+            },
+            {
+              "value": "{{widgets.send_and_reply_question_0.inbound.Body}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_description",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "description_split",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1290,
+            "y": 70
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "receiver"
+            },
+            {
+              "value": "student",
+              "key": "sender"
+            },
+            {
+              "value": "👋 Do you want assistance in answering your assigned question? 💬",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_description_send_message",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "description_send_message",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -690,
+            "y": 540
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "{{flow.variables.description}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_return_to_question_send_message",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "return_to_question_send_message",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1150,
+            "y": 850
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "🙏 I hope that helps!🔙 Let's return back to the assigned question.",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_send_summary",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "save_db_function",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1830,
+            "y": 830
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "📝  *SUMMARY*❓  *Question* : {{flow.variables.question}} 📝  *Description* : {{flow.variables.description}}🎯  *Model Answer* : {{flow.variables.modelAnswer}} 💯  *Total Score* : {{flow.variables.score}} 📝  *Your  Answer* : {{flow.variables.answer}} 🏆  *Your  Score* : {{widgets.student_score_function.parsed.score}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      }
+    ],
+    "initial_state": "Trigger",
+    "flags": {
+      "allow_concurrent_calls": true
+    }
+  }

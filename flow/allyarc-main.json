@@ -1,0 +1,1704 @@
+
+{
+    "description": "A New Flow",
+    "states": [
+      {
+        "name": "Trigger",
+        "type": "trigger",
+        "transitions": [
+          {
+            "next": "sender_number",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "incomingCall"
+          },
+          {
+            "event": "incomingConversationMessage"
+          },
+          {
+            "event": "incomingRequest"
+          },
+          {
+            "event": "incomingParent"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1880,
+            "y": -860
+          }
+        }
+      },
+      {
+        "name": "welcome",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "verify_student",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1580,
+            "y": -620
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Hey, welcome to AllyArc! 🎉👋"
+        }
+      },
+      {
+        "name": "verify_student",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "valid_user_set_variables",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1980,
+            "y": -630
+          },
+          "function_sid": "ZH2ecf57b44c77a3a991989abee89be373",
+          "parameters": [
+            {
+              "value": "{{trigger.message.From}}",
+              "key": "sender_number"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/verify_student"
+        }
+      },
+      {
+        "name": "help_options",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "save_message_db_option",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1660,
+            "y": 100
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "What would you like help in? \n\n1️⃣ - Breakdown 🔧\n\n2️⃣ - Visualize 📊",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "option_split",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "save_message_db_help_options_condition_not_match",
+            "event": "noMatch"
+          },
+          {
+            "next": "subflow_breakdown",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 1",
+                "arguments": [
+                  "{{widgets.help_options.inbound.Body}}"
+                ],
+                "type": "equal_to",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "next": "subflow_visualize",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 2",
+                "arguments": [
+                  "{{widgets.help_options.inbound.Body}}"
+                ],
+                "type": "equal_to",
+                "value": "2"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.help_options.inbound.Body}}",
+          "offset": {
+            "x": -980,
+            "y": 50
+          }
+        }
+      },
+      {
+        "name": "chatbot_option",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "set_chatSessionId",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2010,
+            "y": 60
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "👋 What would you like to do today?\n\n1️⃣ Work on your assignments\n\n2️⃣ Help with any subject questions you have",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "set_name",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_grade",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.verify_student.parsed.studentDetails[0].name}}",
+              "key": "name"
+            }
+          ],
+          "offset": {
+            "x": -2570,
+            "y": -190
+          }
+        }
+      },
+      {
+        "name": "split_chatbot_option",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "save_message_db_condition_not_match",
+            "event": "noMatch"
+          },
+          {
+            "next": "help_options",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 2",
+                "arguments": [
+                  "{{widgets.chatbot_option.inbound.Body}}"
+                ],
+                "type": "equal_to",
+                "value": "2"
+              }
+            ]
+          },
+          {
+            "next": "set_num",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 1",
+                "arguments": [
+                  "{{widgets.chatbot_option.inbound.Body}}"
+                ],
+                "type": "equal_to",
+                "value": "1"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.chatbot_option.inbound.Body}}",
+          "offset": {
+            "x": -2410,
+            "y": 800
+          }
+        }
+      },
+      {
+        "name": "condition_not_match",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "chatbot_option",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2440,
+            "y": 100
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "I'm sorry, please enter a correct option 😔💬💻"
+        }
+      },
+      {
+        "name": "help_options_condition_not_match",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "help_options",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -970,
+            "y": 540
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "I'm sorry, please enter a correct option 😔👉🔢"
+        }
+      },
+      {
+        "name": "verify_student_send_message",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "set_name",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2890,
+            "y": -190
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "{{widgets.verify_student.parsed.messageToSend}}"
+        }
+      },
+      {
+        "name": "sender_number",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "welcome",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{trigger.message.From}}",
+              "key": "sender_number"
+            }
+          ],
+          "offset": {
+            "x": -1210,
+            "y": -630
+          }
+        }
+      },
+      {
+        "name": "valid_user_split",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "event": "noMatch"
+          },
+          {
+            "next": "verify_student_send_message",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to false",
+                "arguments": [
+                  "{{flow.variables.validUser}}"
+                ],
+                "type": "equal_to",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "next": "inavlid_user_send_message",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to false",
+                "arguments": [
+                  "{{flow.variables.validUser}}"
+                ],
+                "type": "equal_to",
+                "value": "false"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{flow.variables.validUser}}",
+          "offset": {
+            "x": -2630,
+            "y": -440
+          }
+        }
+      },
+      {
+        "name": "valid_user_set_variables",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "valid_user_split",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.verify_student.parsed.foundUser}}",
+              "key": "validUser"
+            }
+          ],
+          "offset": {
+            "x": -2450,
+            "y": -630
+          }
+        }
+      },
+      {
+        "name": "inavlid_user_send_message",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2980,
+            "y": -420
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "I'm sorry, but we don't have your contact number {{trigger.message.From}} identified in our system. 😔 If you this this is a mistake please contact your educator. 📞 Have a great day! 😊"
+        }
+      },
+      {
+        "name": "subflow_breakdown",
+        "type": "run-subflow",
+        "transitions": [
+          {
+            "next": "save_message_db_send_and_reply_continue_chat",
+            "event": "completed"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "flow_sid": "FWf3cb0a28b5da632b67790c891e556faf",
+          "flow_revision": "LatestPublished",
+          "offset": {
+            "x": 390,
+            "y": 310
+          },
+          "parameters": [
+            {
+              "value": "{{flow.variables.contact}}",
+              "key": "sender_contact"
+            },
+            {
+              "value": "{{flow.variables.chatSessionId}}",
+              "key": "chatSessionId"
+            }
+          ]
+        }
+      },
+      {
+        "name": "welcome_valid_user_send_message",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "create_message",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1560,
+            "y": -150
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Hey {{flow.variables.name}} 👋,\n\nHere is a status review of your profile:\n\n📱 Your *contact number* is :  {{flow.variables.contact}}\n\n🎒Your *grade* is :  {{flow.variables.grade}}\n\n💡Your *creativity skill score* is:  {{flow.variables.skill_creativity}}\n\n 🔧 Your *logical skill score* is:  {{flow.variables.skill_logical}}\n\n⏱️Your *time skill score* is:  {{flow.variables.skill_time}}\n\n 📊  Your *visual skill score* is:  {{flow.variables.skill_visual}}\n\nWelcome 🤗 back to the AllyArc ♾️chatbot !!"
+        }
+      },
+      {
+        "name": "set_contact",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_skill_creativity",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.verify_student.parsed.studentDetails[2].contact}}",
+              "key": "contact"
+            }
+          ],
+          "offset": {
+            "x": -2090,
+            "y": -390
+          }
+        }
+      },
+      {
+        "name": "set_grade",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_contact",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.verify_student.parsed.studentDetails[1].grade}}",
+              "key": "grade"
+            }
+          ],
+          "offset": {
+            "x": -2220,
+            "y": -190
+          }
+        }
+      },
+      {
+        "name": "set_skill_creativity",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_skill_time",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.verify_student.parsed.studentDetails[3].skill.creativity}}",
+              "key": "skill_creativity"
+            }
+          ],
+          "offset": {
+            "x": -1780,
+            "y": -390
+          }
+        }
+      },
+      {
+        "name": "set_skill_time",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_skill_logical",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.verify_student.parsed.studentDetails[3].skill.time}}",
+              "key": "skill_time"
+            }
+          ],
+          "offset": {
+            "x": -1440,
+            "y": -370
+          }
+        }
+      },
+      {
+        "name": "set_skill_logical",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_skill_visual",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.verify_student.parsed.studentDetails[3].skill.logical}}",
+              "key": "skill_logical"
+            }
+          ],
+          "offset": {
+            "x": -1080,
+            "y": -410
+          }
+        }
+      },
+      {
+        "name": "set_skill_visual",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "welcome_valid_user_send_message",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.verify_student.parsed.studentDetails[3].skill.visual}}",
+              "key": "skill_visual"
+            }
+          ],
+          "offset": {
+            "x": -1070,
+            "y": -200
+          }
+        }
+      },
+      {
+        "name": "subflow_visualize",
+        "type": "run-subflow",
+        "transitions": [
+          {
+            "next": "save_message_db_send_and_reply_continue_chat",
+            "event": "completed"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "flow_sid": "FW3de350f80bff0824ad7b2060a914ecf5",
+          "flow_revision": "LatestPublished",
+          "offset": {
+            "x": -50,
+            "y": 310
+          },
+          "parameters": [
+            {
+              "value": "{{flow.variables.contact}}",
+              "key": "sender_contact"
+            },
+            {
+              "value": "{{flow.variables.chatSessionId}}",
+              "key": "chatSessionId"
+            }
+          ]
+        }
+      },
+      {
+        "name": "subflow_assignment",
+        "type": "run-subflow",
+        "transitions": [
+          {
+            "next": "split_complete_question",
+            "event": "completed"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "flow_sid": "FW96ad6b261630c209fef89b172d3be2f5",
+          "flow_revision": "LatestPublished",
+          "offset": {
+            "x": 170,
+            "y": -200
+          },
+          "parameters": [
+            {
+              "value": "{{flow.variables.contact}}",
+              "key": "sender_contact"
+            },
+            {
+              "value": "{{flow.variables.name}}",
+              "key": "student_name"
+            },
+            {
+              "value": "{{flow.variables.grade}}",
+              "key": "sender_grade"
+            },
+            {
+              "value": "{{flow.variables.modelAnswer}}",
+              "key": "modelAnswer"
+            },
+            {
+              "value": "{{flow.variables.score}}",
+              "key": "score"
+            },
+            {
+              "value": "{{flow.variables.id}}",
+              "key": "id"
+            },
+            {
+              "value": "{{flow.variables.topic}}",
+              "key": "topic"
+            },
+            {
+              "value": "{{flow.variables.question}}",
+              "key": "question"
+            },
+            {
+              "value": "{{flow.variables.description}}",
+              "key": "description"
+            },
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            }
+          ]
+        }
+      },
+      {
+        "name": "set_modelAnswer",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_id",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_questionList_function.parsed.listOfQuestion[0].modelAnswer}}",
+              "key": "modelAnswer"
+            }
+          ],
+          "offset": {
+            "x": -770,
+            "y": -400
+          }
+        }
+      },
+      {
+        "name": "set_id",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "split_continue_question",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_questionList_function.parsed.listOfQuestion[0].count}}",
+              "key": "id"
+            }
+          ],
+          "offset": {
+            "x": -670,
+            "y": -170
+          }
+        }
+      },
+      {
+        "name": "set_topic",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_modelAnswer",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_questionList_function.parsed.listOfQuestion[0].topic}}",
+              "key": "topic"
+            }
+          ],
+          "offset": {
+            "x": -420,
+            "y": -410
+          }
+        }
+      },
+      {
+        "name": "set_question",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_topic",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_questionList_function.parsed.listOfQuestion[0].question}}",
+              "key": "question"
+            }
+          ],
+          "offset": {
+            "x": -80,
+            "y": -410
+          }
+        }
+      },
+      {
+        "name": "set_score",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_question",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_questionList_function.parsed.listOfQuestion[0].score}}",
+              "key": "score"
+            }
+          ],
+          "offset": {
+            "x": 260,
+            "y": -420
+          }
+        }
+      },
+      {
+        "name": "set_description",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_score",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_questionList_function.parsed.listOfQuestion[0].description}}",
+              "key": "description"
+            }
+          ],
+          "offset": {
+            "x": 210,
+            "y": -690
+          }
+        }
+      },
+      {
+        "name": "get_questionList_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "split_if_first",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -480,
+            "y": -670
+          },
+          "function_sid": "ZH9bcc9b6a0d5f7f15e8c492bf808727ff",
+          "parameters": [
+            {
+              "value": "{{flow.variables.contact}}",
+              "key": "contact"
+            },
+            {
+              "value": "{{flow.variables.grade}}",
+              "key": "grade"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/start_assignment"
+        }
+      },
+      {
+        "name": "set_question_list_size",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "set_description",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_questionList_function.parsed.listOfQuestion | size}}",
+              "key": "question_list_size"
+            }
+          ],
+          "offset": {
+            "x": 580,
+            "y": -690
+          }
+        }
+      },
+      {
+        "name": "set_num",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "get_questionList_function",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{% if flow.variables.num %}\n{{flow.variables.num | plus: 1}}\n{% else %}\n 0\n{% endif %}",
+              "key": "num"
+            }
+          ],
+          "offset": {
+            "x": -800,
+            "y": -670
+          }
+        }
+      },
+      {
+        "name": "split_complete_question",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "save_message_db_send_continue_assignment",
+            "event": "noMatch"
+          },
+          {
+            "next": "save_message_db_send_completed_all",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value greater_than {{flow.variables.question_list_size}}",
+                "arguments": [
+                  "{{flow.variables.num}}"
+                ],
+                "type": "greater_than",
+                "value": "{{flow.variables.question_list_size | minus:1}}"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{flow.variables.num}}",
+          "offset": {
+            "x": 560,
+            "y": -190
+          }
+        }
+      },
+      {
+        "name": "send_completed_all",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "save_message_db_send_and_reply_continue_chat",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 1380,
+            "y": 50
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Congratulations! 🎉👏 You've completed all your assigned questions! 🙌"
+        }
+      },
+      {
+        "name": "split_continue_assingment",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "save_message_db_send_and_reply_continue_chat",
+            "event": "noMatch"
+          },
+          {
+            "next": "set_num",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value matches_any_of yes, sure, please, yep, yess, I do, yes please",
+                "arguments": [
+                  "{{widgets.send_continue_assignment.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "yes, sure, please, yep, yess, I do, yes please"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.send_continue_assignment.inbound.Body}}",
+          "offset": {
+            "x": -530,
+            "y": 50
+          }
+        }
+      },
+      {
+        "name": "send_continue_assignment",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "save_message_db_continue_assignment",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 730,
+            "y": 50
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Great job on your last question! 👏\n\nIt looks like there are more questions assigned to you. Would you like to tackle them now? 😊",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "split_continue_chat",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "save_message_db_send_bye",
+            "event": "noMatch"
+          },
+          {
+            "next": "chatbot_option",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value matches_any_of yes, sure, please, yep, yess, I do, yes please",
+                "arguments": [
+                  "{{widgets.send_and_reply_continue_chat.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "yes, sure, please, yep, yess, I do, yes please"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.send_and_reply_continue_chat.inbound.Body}}",
+          "offset": {
+            "x": -650,
+            "y": 310
+          }
+        }
+      },
+      {
+        "name": "send_and_reply_continue_chat",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "save_message_db_continue_chatting",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 850,
+            "y": 290
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Would you like to continue on chatting? 😊💬",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "send_bye",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2930,
+            "y": 320
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "🙏 Thank you for your time. Have a great day! 🌞"
+        }
+      },
+      {
+        "name": "split_continue_question",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "save_message_db_send_completed_all",
+            "event": "noMatch"
+          },
+          {
+            "next": "subflow_assignment",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value greater_than {{flow.variables.question_list_size}}",
+                "arguments": [
+                  "{{flow.variables.num}}"
+                ],
+                "type": "less_than",
+                "value": "{{flow.variables.question_list_size }}"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{flow.variables.num}}",
+          "offset": {
+            "x": -350,
+            "y": -170
+          }
+        }
+      },
+      {
+        "name": "split_if_first",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "set_description",
+            "event": "noMatch"
+          },
+          {
+            "next": "set_question_list_size",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 0",
+                "arguments": [
+                  "{{flow.variables.num}}"
+                ],
+                "type": "equal_to",
+                "value": "0"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{flow.variables.num}}",
+          "offset": {
+            "x": -160,
+            "y": -710
+          }
+        }
+      },
+      {
+        "name": "set_chatSessionId",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "save_message_db_chatbot_option",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.create_message.parsed. \nchatSessionId}}",
+              "key": "chatSessionId"
+            }
+          ],
+          "offset": {
+            "x": -2110,
+            "y": 280
+          }
+        }
+      },
+      {
+        "name": "save_message_db_chatbot_option_selected",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "split_chatbot_option",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1900,
+            "y": 580
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "receiver"
+            },
+            {
+              "value": "student",
+              "key": "sender"
+            },
+            {
+              "value": "{{widgets.chatbot_option.inbound.Body}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_send_continue_assignment",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "send_continue_assignment",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": 420,
+            "y": 50
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "Great job on your last question! 👏It looks like there are more questions assigned to you. Would you like to tackle them now? 😊",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_send_completed_all",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "send_completed_all",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": 1060,
+            "y": 40
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "Congratulations! 🎉👏 You've completed all your assigned questions! 🙌",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_send_and_reply_continue_chat",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "send_and_reply_continue_chat",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": 1190,
+            "y": 270
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "Would you like to continue on chatting? 😊💬",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_help_options_condition_not_match",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "help_options_condition_not_match",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1040,
+            "y": 300
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "I'm sorry, please enter a correct option 😔👉🔢",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_condition_not_match",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "condition_not_match",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -2580,
+            "y": 510
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "I'm sorry, please enter a correct option 😔👉🔢",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_send_bye",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "send_bye",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -2850,
+            "y": 100
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "🙏 Thank you for your time. Have a great day! 🌞",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_continue_chatting",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "split_continue_chat",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -350,
+            "y": 600
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "receiver"
+            },
+            {
+              "value": "student",
+              "key": "sender"
+            },
+            {
+              "value": "{{widgets.send_and_reply_continue_chat.inbound.Body}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_continue_assignment",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "split_continue_assingment",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": 80,
+            "y": 50
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "receiver"
+            },
+            {
+              "value": "student",
+              "key": "sender"
+            },
+            {
+              "value": "{{widgets.send_continue_assignment.inbound.Body}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_option",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "option_split",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1340,
+            "y": 90
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "receiver"
+            },
+            {
+              "value": "student",
+              "key": "sender"
+            },
+            {
+              "value": "{{widgets.help_options.inbound.Body}}",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "create_message",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "chatbot_option",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1880,
+            "y": -160
+          },
+          "function_sid": "ZH33f11bef1293c76a9fbb988a2d87e6b3",
+          "parameters": [
+            {
+              "value": "{{trigger.message.From}}",
+              "key": "sender_number"
+            },
+            {
+              "value": "Hey {{flow.variables.name}} 👋,Here is a status review of your profile:📱 Your *contact number* is :  {{flow.variables.contact}}🎒Your *grade* is :  {{flow.variables.grade}}💡Your *creativity skill score* is:  {{flow.variables.skill_creativity}}🔧 Your *logical skill score* is:  {{flow.variables.skill_logical}}⏱️Your *time skill score* is:  {{flow.variables.skill_time}}📊  Your *visual skill score* is:  {{flow.variables.skill_visual}}Welcome 🤗 back to the SupAut ♾️chatbot !!",
+              "key": "message3"
+            },
+            {
+              "value": "Hey, welcome to SupAut! 🎉👋",
+              "key": "message2"
+            },
+            {
+              "value": "👋 What would you like to do today?1️⃣ Work on your assignments2️⃣ Help with any subject questions you have",
+              "key": "message4"
+            },
+            {
+              "value": "{{trigger.message.Body}}",
+              "key": "message1"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/create_message_instance"
+        }
+      },
+      {
+        "name": "save_message_db_chatbot_option",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "save_message_db_chatbot_option_selected",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -2220,
+            "y": 460
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{flow.variables. chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "What would you like help in? 1️⃣ - Breakdown 🔧2️⃣ - Visualize 📊",
+              "key": "message"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      }
+    ],
+    "initial_state": "Trigger",
+    "flags": {
+      "allow_concurrent_calls": true
+    }
+  }

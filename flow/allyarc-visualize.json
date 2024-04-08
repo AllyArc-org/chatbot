@@ -1,0 +1,556 @@
+
+{
+    "description": "A New Flow",
+    "states": [
+      {
+        "name": "Trigger",
+        "type": "trigger",
+        "transitions": [
+          {
+            "event": "incomingMessage"
+          },
+          {
+            "event": "incomingCall"
+          },
+          {
+            "event": "incomingConversationMessage"
+          },
+          {
+            "event": "incomingRequest"
+          },
+          {
+            "next": "set_variables_user_details",
+            "event": "incomingParent"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -680,
+            "y": -100
+          }
+        }
+      },
+      {
+        "name": "imagebot_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "wait_image",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": 500,
+            "y": -170
+          },
+          "function_sid": "ZH7bb183043f6b17d5ecad796bdf610ae6",
+          "parameters": [
+            {
+              "value": "{{flow.variables.query}}",
+              "key": "sender_query"
+            },
+            {
+              "value": "{{flow.variables.sender_contact}}",
+              "key": "sender_contact"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/visualize"
+        }
+      },
+      {
+        "name": "imagebot_send_and_reply",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "save_message_db_query",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1420,
+            "y": 300
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "👋 Is there anything else you'd like to visualize from our ImageBot? 🤖📷",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "question_count_set_variables",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "question_count_split",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{% if flow.variables.num %}\n  {{flow.variables.num | plus: 1}}\n{% else %}\n  0\n{% endif %}",
+              "key": "num"
+            }
+          ],
+          "offset": {
+            "x": 140,
+            "y": 330
+          }
+        }
+      },
+      {
+        "name": "question_count_split",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "imagebot_function",
+            "event": "noMatch"
+          },
+          {
+            "next": "save_message_db_maxout",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value greater_than 5",
+                "arguments": [
+                  "{{flow.variables.num}}"
+                ],
+                "type": "greater_than",
+                "value": "5"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{flow.variables.num}}",
+          "offset": {
+            "x": 370,
+            "y": 680
+          }
+        }
+      },
+      {
+        "name": "query_set_variables",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "query_split",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.imagebot_send_and_reply.inbound.Body}}",
+              "key": "query"
+            }
+          ],
+          "offset": {
+            "x": -730,
+            "y": 360
+          }
+        }
+      },
+      {
+        "name": "query_split",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "question_count_set_variables",
+            "event": "noMatch"
+          },
+          {
+            "next": "save_message_db_end",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to no, nope, nah, all good, that's it, that is all,",
+                "arguments": [
+                  "{{flow.variables.query}}"
+                ],
+                "type": "matches_any_of",
+                "value": "no, nope, nah, all good, that's it, that is all,"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{flow.variables.query}}",
+          "offset": {
+            "x": -400,
+            "y": 380
+          }
+        }
+      },
+      {
+        "name": "end_send_message",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1410,
+            "y": 580
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "🙏 Thank You 👉 📞🤖 for reaching out to our ImageBot 🤖📷"
+        }
+      },
+      {
+        "name": "maxout_send_message",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "save_message_db_end",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -560,
+            "y": 650
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "I'm sorry but that is all the questions you can ask our ImageBot 😔🤖🚫"
+        }
+      },
+      {
+        "name": "set_variables_user_details",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "save_message_db_send_imagebot",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{trigger.parent.parameters.sender_contact}}",
+              "key": "sender_contact"
+            }
+          ],
+          "offset": {
+            "x": -1340,
+            "y": 40
+          }
+        }
+      },
+      {
+        "name": "send_image",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "save_message_db_send_imagebot",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -650,
+            "y": 90
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "message_type": "custom",
+          "to": "{{contact.channel.address}}",
+          "body": "Here is the image of  {{flow.variables.query}}  as you've requested",
+          "media_url": "{{widgets.imagebot_function.parsed.mediaUrl}}"
+        }
+      },
+      {
+        "name": "save_message_db_send_imagebot",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "imagebot_send_and_reply",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -980,
+            "y": 70
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "👋 Is there anything else you'd like to visualize from our ImageBot? 🤖📷",
+              "key": "message"
+            },
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_send_image",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "send_image",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -340,
+            "y": 90
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "Here is the image url of  {{flow.variables.query}}  as you've requested:{{widgets.imagebot_function.parsed.mediaUrl}}",
+              "key": "message"
+            },
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_maxout",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "maxout_send_message",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -220,
+            "y": 670
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "I'm sorry but that is all the questions you can ask our ImageBot 😔🤖🚫",
+              "key": "message"
+            },
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_end",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "end_send_message",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1060,
+            "y": 600
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "🙏 Thank You 👉 📞🤖 for reaching out to our ImageBot 🤖📷",
+              "key": "message"
+            },
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "chatbot",
+              "key": "sender"
+            },
+            {
+              "value": "student",
+              "key": "receiver"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "save_message_db_query",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "query_set_variables",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSb65a17e3f9c8a8345afffab5b071697a",
+          "environment_sid": "ZEe2418fff4a89ed50f24f31b60cbb5d06",
+          "offset": {
+            "x": -1080,
+            "y": 320
+          },
+          "function_sid": "ZHcf3ee6915681416bac34f419842f7617",
+          "parameters": [
+            {
+              "value": "{{widgets.imagebot_send_and_reply.inbound.Body}}",
+              "key": "message"
+            },
+            {
+              "value": "{{trigger.parent.parameters.chatSessionId}}",
+              "key": "chatSessionId"
+            },
+            {
+              "value": "student",
+              "key": "sender"
+            },
+            {
+              "value": "chatbot",
+              "key": "receiver"
+            }
+          ],
+          "url": "https://allyarc-9130.twil.io/save_convo_db"
+        }
+      },
+      {
+        "name": "send_image_url",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "save_message_db_send_image",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -20,
+            "y": 70
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "message_type": "custom",
+          "to": "{{contact.channel.address}}",
+          "body": "Here is the image url of  {{flow.variables.query}}  as you've requested:\n {{widgets.imagebot_function.parsed.mediaUrl}}",
+          "media_url": ""
+        }
+      },
+      {
+        "name": "wait_image",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "send_image_url",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 140,
+            "y": -150
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "message_type": "custom",
+          "to": "{{contact.channel.address}}",
+          "body": "Please wait till your request of the image of {{flow.variables.query}}  is being processed",
+          "media_url": ""
+        }
+      }
+    ],
+    "initial_state": "Trigger",
+    "flags": {
+      "allow_concurrent_calls": true
+    }
+  }
