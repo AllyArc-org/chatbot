@@ -68,7 +68,7 @@ Aids in visual learning by generating and presenting visual content based on the
 - **Visualization Request Handling:** Processes requests for visual content and identifies the type of visualization needed.
 - **Visual Content Generation:** Generates the requested visual content using serverless functions and external APIs as needed.
 - **Presentation:** Presents the generated visual content to the student, offering further explanations or answering questions about the visualized information.
-<img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-visualize.png?raw=true" width="600" height="400">
+<img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-visualize.png?raw=true" width="800" height="400">
 
 ## Serverless Functions Overview 🔧
 
