@@ -59,7 +59,7 @@ Designed to offer step-by-step breakdown assistance for questions or tasks assig
 - **Initial Request Handling:** Identifies the need for breakdown assistance and initiates the assistance flow.
 - **Breakdown Process:** Provides a detailed breakdown of the solution steps, asking for student's input or confirmation at each step.
 - **Feedback Collection:** Gathers student feedback on the assistance provided for continuous improvement of the breakdown process.
-<img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-visualize.png?raw=true" width="600" height="400">
+<img src="https://github.com/AllyArc-org/chatbot/blob/main/images/allyarc-assignment.png" width="600" height="400">
 
 ### Flow 4: AllyArc Visualization
 
