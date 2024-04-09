@@ -41,7 +41,7 @@ Serves as the main communication channel between the chatbot and students, handl
 - **General Inquiries Handling:** Answers common questions and provides information on various topics.
 - **Resource Direction:** Directs students to additional resources, such as instructional materials or external links, for further learning.
 - **Feedback and Suggestions:** Collects feedback and suggestions from students to improve the chatbot's performance and resource offerings.
-<img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-assingnment.png?raw=true" width="600" height="400">
+<img src="https://github.com/AllyArc-org/chatbot/blob/main/images/allyarc-assignment.png" width="800" height="450">
 
 ### Flow 2: AllyArc Assignment Interaction
 
@@ -50,7 +50,7 @@ This flow focuses on assigning tasks or questions to students, tracking their re
 - **Trigger and Variables:** Sets up the flow trigger and initializes variables for the assignment.
 - **Assignment Distribution and Collection:** Sends the assignment question and waits for the student's response.
 - **Grading:** Calculates the student's score based on the model answer and the response provided.
-<img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-breakdown.png?raw=true" width="600" height="400">
+<img src="https://github.com/AllyArc-org/chatbot/blob/main/images/allyarc-assignment.png" width="800" height="450">
 
 ### Flow 3: AllyArc Breakdown Assistance
 
@@ -59,7 +59,7 @@ Designed to offer step-by-step breakdown assistance for questions or tasks assig
 - **Initial Request Handling:** Identifies the need for breakdown assistance and initiates the assistance flow.
 - **Breakdown Process:** Provides a detailed breakdown of the solution steps, asking for student's input or confirmation at each step.
 - **Feedback Collection:** Gathers student feedback on the assistance provided for continuous improvement of the breakdown process.
-<img src="https://github.com/AllyArc-org/chatbot/blob/main/images/allyarc-assignment.png" width="600" height="400">
+<img src="https://github.com/AllyArc-org/chatbot/blob/main/images/allyarc-assignment.png" width="800" height="450">
 
 ### Flow 4: AllyArc Visualization
 
@@ -68,7 +68,7 @@ Aids in visual learning by generating and presenting visual content based on the
 - **Visualization Request Handling:** Processes requests for visual content and identifies the type of visualization needed.
 - **Visual Content Generation:** Generates the requested visual content using serverless functions and external APIs as needed.
 - **Presentation:** Presents the generated visual content to the student, offering further explanations or answering questions about the visualized information.
-<img src="https://github.com/SupAut/SupAut-Chatbot/blob/main/flow-supaut-chatbot/image-preview/flow-studio-supaut-visualize.png?raw=true" width="800" height="400">
+<img src="https://github.com/AllyArc-org/chatbot/blob/main/images/allyarc-assignment.png" width="800" height="450">
 
 ## Serverless Functions Overview 🔧
 
